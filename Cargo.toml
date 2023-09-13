@@ -1,0 +1,7 @@
+[package]
+name = "griddy"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+crc32fast = "1.3.2"
