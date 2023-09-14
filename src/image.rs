@@ -37,7 +37,10 @@ impl Error for FileError {}
 
 use FileError as e;
 impl Image {
-    pub fn new<P: AsRef<Path>>(path: P) -> Result<Image, FileError> {
+    pub fn new<P>(path: P) -> Result<Image, FileError>
+    where
+        P: AsRef<Path>,
+    {
         let mut file = match File::open(path) {
             Ok(file) => file,
             Err(_) => return Err(e::FileNotFound),
