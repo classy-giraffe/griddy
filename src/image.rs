@@ -1,34 +1,121 @@
+use std::error::Error;
+use std::fmt::{Debug, Display, Formatter};
+use crate::chunk::Chunk;
 use std::fs::File;
 use std::io::Read;
-use crate::chunk::Chunk;
+use std::ops::Index;
 
-pub(crate) struct Image {
-    bytes: Vec<u8>,
+#[derive(Debug)]
+pub struct Image {
+    chunks: Vec<Chunk>,
 }
 
-impl Image {
-    const PNG_SIGNATURE: [u8; 8] = [137, 80, 78, 71, 13, 10, 26, 10];
+const PNG_SIGNATURE: [u8; 8] = [137, 80, 78, 71, 13, 10, 26, 10];
+const LENGTH_SIZE_OFFSET: usize = 4;
+const TYPE_SIZE_OFFSET: usize = 8;
+const CRC_SIZE_OFFSET: usize = 12;
 
-    pub fn new(path: &str) -> Image {
-        let mut file = File::open(path).unwrap();
-        let mut buffer = Vec::new();
-        file.read_to_end(&mut buffer).unwrap();
-        Image { bytes: buffer }
-    }
+#[derive(Debug, PartialEq, Eq)]
+pub enum FileError {
+    FileNotFound,
+    FailedToRead,
+    NotAPng,
+}
 
-    pub fn get_bytes(&self) -> &[u8] {
-        &self.bytes
-    }
-
-    pub fn parse_png(&self) {
-        if !self.is_png() {
-            println!("not a png");
+impl Display for FileError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        match self {
+            FileError::FileNotFound => write!(f, "File not found"),
+            FileError::FailedToRead => write!(f, "Failed to read file"),
+            FileError::NotAPng => write!(f, "File is not a PNG"),
         }
-        let data_chunks = Chunk::parse_chunk(&self.bytes[8..]);
-        todo!();
+    }
+}
+
+impl Error for FileError {}
+
+use FileError as e;
+impl Image {
+
+    pub fn new(path: &str) -> Result<Image, FileError> {
+        let mut file = match File::open(path) {
+            Ok(file) => file,
+            Err(_) => return Err(e::FileNotFound),
+        };
+
+        let mut buffer = Vec::new();
+
+        match file.read_to_end(&mut buffer) {
+            Ok(_) => (),
+            Err(_) => return Err(e::FailedToRead),
+        };
+
+        match &Self::is_png(&buffer) {
+            true => Ok(Image {
+                chunks: Self::parse(&buffer[PNG_SIGNATURE.len()..]),
+            }),
+            false => Err(e::NotAPng),
+        }
     }
 
-    pub fn is_png(&self) -> bool {
-        self.bytes.starts_with(&Image::PNG_SIGNATURE)
+    fn parse(bytes: &[u8]) -> Vec<Chunk> {
+        if bytes.len() < 16 {
+            panic!("Bytes length is less than 16");
+        }
+
+        let mut offset = 0;
+        let mut chunks = vec![];
+
+        while offset < bytes.len() {
+            let chunk_length = u32::from_be_bytes(
+                bytes[offset..offset + LENGTH_SIZE_OFFSET]
+                    .try_into()
+                    .unwrap_or_else(|error| {
+                        panic!("Failed to convert chunk length bytes to u32: {}", error)
+                    }),
+            ) as usize;
+            chunks.push(Chunk {
+                length: chunk_length,
+                class: u32::from_be_bytes(
+                    bytes[offset + LENGTH_SIZE_OFFSET..offset + TYPE_SIZE_OFFSET]
+                        .try_into()
+                        .unwrap_or_else(|error| {
+                            panic!("Failed to convert chunk type bytes to u32: {}", error)
+                        }),
+                ),
+                data: bytes[offset + TYPE_SIZE_OFFSET
+                    ..offset + TYPE_SIZE_OFFSET + chunk_length]
+                    .to_vec(),
+                crc: u32::from_be_bytes(
+                    bytes[offset + TYPE_SIZE_OFFSET + chunk_length
+                        ..offset + CRC_SIZE_OFFSET + chunk_length]
+                        .try_into()
+                        .unwrap_or_else(|error| {
+                            panic!("Failed to convert chunk crc bytes to u32: {}", error)
+                        }),
+                ),
+            });
+            offset += CRC_SIZE_OFFSET + chunk_length;
+        }
+
+        chunks
+    }
+
+    fn is_png(data: &[u8]) -> bool {
+        data.starts_with(&PNG_SIGNATURE)
+    }
+}
+
+impl Index<usize> for Image {
+    type Output = Chunk;
+
+    fn index(&self, index: usize) -> &Self::Output {
+        &self.chunks[index]
+    }
+}
+
+impl Display for Image {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(f, "Image: chunks: {:?}", self.chunks)
     }
 }

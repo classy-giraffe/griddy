@@ -3,5 +3,13 @@ name = "griddy"
 version = "0.1.0"
 edition = "2021"
 
+[lib]
+name = "griddy"
+path = "src/lib.rs"
+
+[[bin]]
+name = "griddy"
+path = "src/bin/main.rs"
+
 [dependencies]
 crc32fast = "1.3.2"

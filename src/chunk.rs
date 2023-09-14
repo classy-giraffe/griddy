@@ -1,55 +1,46 @@
+use std::fmt;
+
 #[derive(Debug)]
 pub struct Chunk {
-    length: usize,
-    chunk_type: u32,
-    chunk_data: Vec<u8>,
-    crc: u32,
+    pub length: usize,
+    pub class: u32,
+    pub data: Vec<u8>,
+    pub crc: u32,
+}
+
+impl fmt::Display for Chunk {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "Chunk: length: {}, type: {}, data: {:?}, crc: {}",
+            self.length, self.class, self.data, self.crc
+        )
+    }
 }
 
 impl Chunk {
-    const LENGTH_SIZE_OFFSET: usize = 4;
-    const TYPE_SIZE_OFFSET: usize = 8;
-    const CRC_SIZE_OFFSET: usize = 12;
-
-    pub fn parse_chunk(bytes: &[u8]) -> Vec<Chunk> {
-        if bytes.len() < 16 {
-            panic!("Bytes length is less than 16");
+    pub fn new(length: usize, class: u32, data: Vec<u8>, crc: u32) -> Chunk {
+        Chunk {
+            length,
+            class,
+            data,
+            crc,
         }
+    }
 
-        let mut data_chunks = vec![];
-        let mut offset = 0;
+    pub fn get_length(&self) -> usize {
+        self.length
+    }
 
-        while offset < bytes.len() {
-            let chunk_length = u32::from_be_bytes(
-                bytes[offset..offset + Chunk::LENGTH_SIZE_OFFSET]
-                    .try_into()
-                    .unwrap_or_else(|error| {
-                        panic!("Failed to convert chunk length bytes to u32: {}", error)
-                    }),
-            ) as usize;
-            data_chunks.push(Chunk {
-                length: chunk_length,
-                chunk_type: u32::from_be_bytes(
-                    bytes[offset + Chunk::LENGTH_SIZE_OFFSET..offset + Chunk::TYPE_SIZE_OFFSET]
-                        .try_into()
-                        .unwrap_or_else(|error| {
-                            panic!("Failed to convert chunk type bytes to u32: {}", error)
-                        }),
-                ),
-                chunk_data: bytes[offset + Chunk::TYPE_SIZE_OFFSET
-                    ..offset + Chunk::TYPE_SIZE_OFFSET + chunk_length]
-                    .to_vec(),
-                crc: u32::from_be_bytes(
-                    bytes[offset + Chunk::TYPE_SIZE_OFFSET + chunk_length
-                        ..offset + Chunk::CRC_SIZE_OFFSET + chunk_length]
-                        .try_into()
-                        .unwrap_or_else(|error| {
-                            panic!("Failed to convert chunk crc bytes to u32: {}", error)
-                        }),
-                ),
-            });
-            offset += Chunk::CRC_SIZE_OFFSET + chunk_length;
-        }
-        data_chunks
+    pub fn get_class(&self) -> u32 {
+        self.class
+    }
+
+    pub fn get_data(&self) -> &[u8] {
+        &self.data
+    }
+
+    pub fn get_crc(&self) -> u32 {
+        self.crc
     }
 }
