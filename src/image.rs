@@ -1,6 +1,6 @@
+use crate::chunk::Chunk;
 use std::error::Error;
 use std::fmt::{Debug, Display, Formatter};
-use crate::chunk::Chunk;
 use std::fs::File;
 use std::io::Read;
 use std::ops::Index;
@@ -37,7 +37,6 @@ impl Error for FileError {}
 
 use FileError as e;
 impl Image {
-
     pub fn new<P: AsRef<Path>>(path: P) -> Result<Image, FileError> {
         let mut file = match File::open(path) {
             Ok(file) => file,
@@ -84,8 +83,7 @@ impl Image {
                             panic!("Failed to convert chunk type bytes to u32: {}", error)
                         }),
                 ),
-                data: bytes[offset + TYPE_SIZE_OFFSET
-                    ..offset + TYPE_SIZE_OFFSET + chunk_length]
+                data: bytes[offset + TYPE_SIZE_OFFSET..offset + TYPE_SIZE_OFFSET + chunk_length]
                     .to_vec(),
                 crc: u32::from_be_bytes(
                     bytes[offset + TYPE_SIZE_OFFSET + chunk_length

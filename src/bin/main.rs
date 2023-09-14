@@ -1,6 +1,5 @@
 use griddy::image::Image;
 
-
 fn main() {
     let image = Image::new(r"./samples/sample.png").unwrap();
     println!("{}", image);
