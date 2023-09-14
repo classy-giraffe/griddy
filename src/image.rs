@@ -4,6 +4,7 @@ use crate::chunk::Chunk;
 use std::fs::File;
 use std::io::Read;
 use std::ops::Index;
+use std::path::Path;
 
 #[derive(Debug)]
 pub struct Image {
@@ -37,13 +38,13 @@ impl Error for FileError {}
 use FileError as e;
 impl Image {
 
-    pub fn new(path: &str) -> Result<Image, FileError> {
+    pub fn new<P: AsRef<Path>>(path: P) -> Result<Image, FileError> {
         let mut file = match File::open(path) {
             Ok(file) => file,
             Err(_) => return Err(e::FileNotFound),
         };
 
-        let mut buffer = Vec::new();
+        let mut buffer = vec![];
 
         match file.read_to_end(&mut buffer) {
             Ok(_) => (),

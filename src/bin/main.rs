@@ -2,7 +2,7 @@ use griddy::image::Image;
 
 
 fn main() {
-    let image = Image::new(r".\samples\sample.png").unwrap();
+    let image = Image::new(r"./samples/sample.png").unwrap();
     println!("{}", image);
 }
 
@@ -19,7 +19,19 @@ mod tests {
 
     #[test]
     fn test_file_not_found() {
-        let image = Image::new(r".\samples\sample2.png");
+        let image = Image::new(r"./samples/sample2.png");
         assert_eq!(image.unwrap_err(), FileError::FileNotFound);
+    }
+
+    #[test]
+    fn test_failed_to_read() {
+        let image = Image::new(r"./samples/sample3.png");
+        assert_eq!(image.unwrap_err(), FileError::FailedToRead);
+    }
+
+    #[test]
+    fn test_not_a_png() {
+        let image = Image::new(r"./samples/sample.jpg");
+        assert_eq!(image.unwrap_err(), FileError::NotAPng);
     }
 }
