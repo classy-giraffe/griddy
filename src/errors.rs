@@ -22,6 +22,7 @@ impl Error for FileError {}
 
 #[derive(Debug, PartialEq, Eq)]
 pub(crate) enum ParsingError {
+    SizeTooSmall,
     InvalidLength,
     InvalidType,
     InvalidCrc,
@@ -31,6 +32,7 @@ pub(crate) enum ParsingError {
 impl Display for ParsingError {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         match self {
+            ParsingError::SizeTooSmall => write!(f, "Buffer size too small"),
             ParsingError::InvalidLength => write!(f, "Invalid chunk length"),
             ParsingError::InvalidType => write!(f, "Invalid chunk type"),
             ParsingError::InvalidCrc => write!(f, "Invalid chunk crc"),

@@ -24,64 +24,54 @@ impl Image {
     where
         P: AsRef<Path>,
     {
-        let mut file = match File::open(path) {
-            Ok(file) => file,
-            Err(_) => return Err(fe::FileNotFound),
-        };
-
+        let mut file = File::open(path).map_err(|_| fe::FileNotFound)?;
         let mut buffer = vec![];
-
-        match file.read_to_end(&mut buffer) {
-            Ok(_) => (),
-            Err(_) => return Err(fe::FailedToRead),
-        };
-
-        match &Self::is_png(&buffer) {
-            true => Ok(Image {
-                chunks: Self::parse(&buffer[8..]).unwrap(),
-            }),
+        file.read_to_end(&mut buffer)
+            .map_err(|_| fe::FailedToRead)?;
+        match Image::is_png(&buffer) {
+            true => Self::parse(&buffer[8..])
+                .map(|chunks| Image { chunks })
+                .map_err(|_| fe::NotAPng),
             false => Err(fe::NotAPng),
         }
     }
 
     fn parse(bytes: &[u8]) -> Result<Vec<Chunk>, ParsingError> {
         if bytes.len() < 16 {
-            return Err(pe::InvalidLength);
+            return Err(pe::SizeTooSmall);
         }
 
         let mut offset = 0;
         let mut chunks = vec![];
 
         while offset < bytes.len() {
-            let length = match bytes[offset..offset + LENGTH_SIZE_OFFSET].try_into() {
-                Ok(length) => u32::from_be_bytes(length),
-                Err(_) => return Err(pe::InvalidLength),
-            } as usize;
+            let length = u32::from_be_bytes(
+                bytes[offset..offset + LENGTH_SIZE_OFFSET]
+                    .try_into()
+                    .map_err(|_| pe::InvalidLength)?,
+            ) as usize;
 
-            let class =
-                match bytes[offset + LENGTH_SIZE_OFFSET..offset + TYPE_SIZE_OFFSET].try_into() {
-                    Ok(class) => u32::from_be_bytes(class),
-                    Err(_) => return Err(pe::InvalidType),
-                };
+            let class = u32::from_be_bytes(
+                bytes[offset + LENGTH_SIZE_OFFSET..offset + TYPE_SIZE_OFFSET]
+                    .try_into()
+                    .map_err(|_| pe::InvalidType)?,
+            );
 
             let data =
                 bytes[offset + TYPE_SIZE_OFFSET..offset + TYPE_SIZE_OFFSET + length].to_vec();
 
-            let crc = match bytes[offset + TYPE_SIZE_OFFSET + length
-                ..offset + CRC_SIZE_OFFSET + length]
-                .try_into()
-            {
-                Ok(crc) => u32::from_be_bytes(crc),
-                Err(_) => return Err(pe::InvalidCrc),
-            };
+            let crc = u32::from_be_bytes(
+                bytes[offset + TYPE_SIZE_OFFSET + length..offset + CRC_SIZE_OFFSET + length]
+                    .try_into()
+                    .map_err(|_| pe::InvalidCrc)?,
+            );
 
             let mut crc32 = Hasher::new();
             crc32.update(&class.to_be_bytes());
             crc32.update(&data);
             let finalized_crc = crc32.finalize();
-            match finalized_crc == crc {
-                true => (),
-                false => return Err(pe::CrcMismatch),
+            if crc != finalized_crc {
+                return Err(pe::CrcMismatch);
             }
 
             chunks.push(Chunk::new(length, class, data, crc));
