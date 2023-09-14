@@ -21,12 +21,12 @@ mod tests {
     #[test]
     fn test_file_not_found() {
         let image = Image::new(r"./samples/sample2.png");
-        assert_eq!(image.unwrap_err(), FileError::FileNotFound);
+        assert_eq!(image.unwrap_err(), FileError::FileNotFound.into());
     }
 
     #[test]
     fn test_not_a_png() {
         let image = Image::new(r"./samples/sample.jpg");
-        assert_eq!(image.unwrap_err(), FileError::NotAPng);
+        assert_eq!(image.unwrap_err(), FileError::NotAPng.into());
     }
 }

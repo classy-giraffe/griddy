@@ -30,7 +30,7 @@ impl Image {
             .map_err(|_| fe::FailedToRead)?;
         match Image::is_png(&buffer) {
             true => Ok(Image {
-                chunks: Image::parse(&buffer)?,
+                chunks: Image::parse(&buffer[8..])?,
             }),
             false => Err(fe::NotAPng.into()),
         }

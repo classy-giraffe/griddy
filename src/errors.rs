@@ -43,7 +43,7 @@ impl Display for ParsingError {
 
 impl Error for ParsingError {}
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq)]
 pub enum ImageError {
     FileError(FileError),
     ParsingError(ParsingError),
