@@ -12,7 +12,11 @@ mod tests {
 
     #[test]
     fn test_is_png() {
-        let image = Image::new(r".\samples\sample.png");
+        let image = Image::new(r"./samples/sample.png");
+        // print local path
+        println!("{:?}", std::env::current_dir());
+        // print local path one folder up and then down
+        println!("{:?}", std::env::current_dir().unwrap().parent());
         assert!(image.is_ok());
     }
 
