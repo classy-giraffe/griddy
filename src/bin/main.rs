@@ -2,13 +2,15 @@ use griddy::image::Image;
 
 fn main() {
     let image = Image::new(r"./samples/sample.png").unwrap();
-    println!("{}", image);
+    for chunk in image {
+        println!("{:?}", chunk);
+    }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use griddy::image::FileError;
+    use griddy::errors::FileError;
 
     #[test]
     fn test_is_png() {
