@@ -17,8 +17,10 @@ pub struct Image {
     chunks: Vec<Chunk>,
 }
 
+use crate::parsed_chunks::IHDRChunk;
 use FileError as fe;
 use ParsingError as pe;
+
 impl Image {
     pub fn new<P>(path: P) -> Result<Image, ImageError>
     where
@@ -45,44 +47,65 @@ impl Image {
         let mut chunks = vec![];
 
         while offset < bytes.len() {
-            let length = u32::from_be_bytes(
-                bytes[offset..offset + LENGTH_SIZE_OFFSET]
-                    .try_into()
-                    .map_err(|_| pe::InvalidLength)?,
-            ) as usize;
-
-            let class = u32::from_be_bytes(
-                bytes[offset + LENGTH_SIZE_OFFSET..offset + TYPE_SIZE_OFFSET]
-                    .try_into()
-                    .map_err(|_| pe::InvalidType)?,
-            );
-
-            let data =
-                bytes[offset + TYPE_SIZE_OFFSET..offset + TYPE_SIZE_OFFSET + length].to_vec();
-
-            let crc = u32::from_be_bytes(
-                bytes[offset + TYPE_SIZE_OFFSET + length..offset + CRC_SIZE_OFFSET + length]
-                    .try_into()
-                    .map_err(|_| pe::InvalidCrc)?,
-            );
-
-            let mut crc32 = Hasher::new();
-            crc32.update(&class.to_be_bytes());
-            crc32.update(&data);
-            let finalized_crc = crc32.finalize();
-            if crc != finalized_crc {
-                return Err(pe::CrcMismatch);
-            }
-
-            chunks.push(Chunk::new(length, class, data, crc));
+            let chunk = Image::parse_chunk(&bytes[offset..])?;
+            let length = chunk.get_length();
+            chunks.push(chunk);
             offset += CRC_SIZE_OFFSET + length;
         }
-
         Ok(chunks)
     }
 
-    fn is_png(data: &[u8]) -> bool {
+    fn parse_chunk(bytes: &[u8]) -> Result<Chunk, ParsingError> {
+        let length = u32::from_be_bytes(
+            bytes[..LENGTH_SIZE_OFFSET]
+                .try_into()
+                .map_err(|_| pe::InvalidLength)?,
+        ) as usize;
+
+        let class = u32::from_be_bytes(
+            bytes[LENGTH_SIZE_OFFSET..TYPE_SIZE_OFFSET]
+                .try_into()
+                .map_err(|_| pe::InvalidType)?,
+        );
+
+        let data = bytes[TYPE_SIZE_OFFSET..TYPE_SIZE_OFFSET + length].to_vec();
+
+        let crc = u32::from_be_bytes(
+            bytes[TYPE_SIZE_OFFSET + length..CRC_SIZE_OFFSET + length]
+                .try_into()
+                .map_err(|_| pe::InvalidCrc)?,
+        );
+
+        let mut crc32 = Hasher::new();
+        crc32.update(&class.to_be_bytes());
+        crc32.update(&data);
+        let finalized_crc = crc32.finalize();
+
+        if crc != finalized_crc {
+            return Err(pe::CrcMismatch);
+        }
+
+        Ok(Chunk::new(length, class, data, crc))
+    }
+
+    pub fn is_png(data: &[u8]) -> bool {
         data.starts_with(&PNG_SIGNATURE)
+    }
+
+    pub fn ihdr_parse(&self) -> IHDRChunk {
+        let ihdr = &self[0];
+        let data = ihdr.get_data();
+        IHDRChunk::new(
+            (
+                u32::from_be_bytes(data[..4].try_into().unwrap()),
+                u32::from_be_bytes(data[4..8].try_into().unwrap()),
+            ),
+            data[8],
+            data[9],
+            data[10],
+            data[11],
+            data[12],
+        )
     }
 }
 

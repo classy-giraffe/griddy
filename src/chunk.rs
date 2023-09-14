@@ -2,10 +2,10 @@ use std::fmt;
 
 #[derive(Debug)]
 pub struct Chunk {
-    pub length: usize,
-    pub class: u32,
-    pub data: Vec<u8>,
-    pub crc: u32,
+    length: usize,
+    class: u32,
+    data: Vec<u8>,
+    crc: u32,
 }
 
 impl fmt::Display for Chunk {

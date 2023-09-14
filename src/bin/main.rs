@@ -1,10 +1,8 @@
 use griddy::image::Image;
 
 fn main() {
-    let image = Image::new(r"./samples/sample.png").unwrap();
-    for chunk in image {
-        println!("{:?}", chunk);
-    }
+    let image = Image::new(r"./samples/sample.png").unwrap().ihdr_parse();
+    println!("ihdr: {}", image);
 }
 
 #[cfg(test)]
