@@ -1,5 +1,5 @@
 use crate::chunk::Chunk;
-use crate::errors::{FileError, ParsingError};
+use crate::errors::{FileError, ImageError, ParsingError};
 use crc32fast::Hasher;
 use std::fmt::{Debug, Display, Formatter};
 use std::fs::File;
@@ -20,7 +20,7 @@ pub struct Image {
 use FileError as fe;
 use ParsingError as pe;
 impl Image {
-    pub fn new<P>(path: P) -> Result<Image, FileError>
+    pub fn new<P>(path: P) -> Result<Image, ImageError>
     where
         P: AsRef<Path>,
     {
@@ -29,10 +29,10 @@ impl Image {
         file.read_to_end(&mut buffer)
             .map_err(|_| fe::FailedToRead)?;
         match Image::is_png(&buffer) {
-            true => Self::parse(&buffer[8..])
-                .map(|chunks| Image { chunks })
-                .map_err(|_| fe::NotAPng),
-            false => Err(fe::NotAPng),
+            true => Ok(Image {
+                chunks: Image::parse(&buffer)?,
+            }),
+            false => Err(fe::NotAPng.into()),
         }
     }
 

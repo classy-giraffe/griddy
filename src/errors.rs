@@ -21,7 +21,7 @@ impl Display for FileError {
 impl Error for FileError {}
 
 #[derive(Debug, PartialEq, Eq)]
-pub(crate) enum ParsingError {
+pub enum ParsingError {
     SizeTooSmall,
     InvalidLength,
     InvalidType,
@@ -42,3 +42,32 @@ impl Display for ParsingError {
 }
 
 impl Error for ParsingError {}
+
+#[derive(Debug)]
+pub enum ImageError {
+    FileError(FileError),
+    ParsingError(ParsingError),
+}
+
+impl Display for ImageError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        match self {
+            ImageError::FileError(e) => write!(f, "{}", e),
+            ImageError::ParsingError(e) => write!(f, "{}", e),
+        }
+    }
+}
+
+impl Error for ImageError {}
+
+impl From<FileError> for ImageError {
+    fn from(e: FileError) -> Self {
+        ImageError::FileError(e)
+    }
+}
+
+impl From<ParsingError> for ImageError {
+    fn from(e: ParsingError) -> Self {
+        ImageError::ParsingError(e)
+    }
+}
