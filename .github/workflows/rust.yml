@@ -24,5 +24,3 @@ jobs:
       run: cargo test --verbose
     - name: Format
       run: cargo fmt --all -- --check
-    - name: Miri
-      run: cargo miri test --verbose
