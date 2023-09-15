@@ -48,9 +48,8 @@ impl Image {
 
         while offset < bytes.len() {
             let chunk = Image::parse_chunk(&bytes[offset..])?;
-            let length = chunk.get_length();
+            offset += CRC_SIZE_OFFSET + chunk.get_length();
             chunks.push(chunk);
-            offset += CRC_SIZE_OFFSET + length;
         }
         Ok(chunks)
     }

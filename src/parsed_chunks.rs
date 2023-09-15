@@ -1,6 +1,6 @@
 use std::fmt::Display;
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq)]
 pub struct IHDRChunk {
     dimensions: (u32, u32),
     bit_depth: u8,

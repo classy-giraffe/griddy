@@ -1,14 +1,16 @@
 use griddy::image::Image;
 
 fn main() {
-    let image = Image::new(r"./samples/sample.png").unwrap().ihdr_parse();
+    let image = Image::new(r"./samples/sample.png").unwrap();
     println!("ihdr: {}", image);
 }
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use griddy::errors::FileError;
+    use griddy::parsed_chunks::IHDRChunk;
+
+    use super::*;
 
     #[test]
     fn test_is_png() {
@@ -26,5 +28,12 @@ mod tests {
     fn test_not_a_png() {
         let image = Image::new(r"./samples/sample.jpg");
         assert_eq!(image.unwrap_err(), FileError::NotAPng.into());
+    }
+
+    #[test]
+    fn test_ihdr() {
+        let test_ihdr = IHDRChunk::new((850, 566), 8, 2, 0, 0, 0);
+        let image = Image::new(r"./samples/sample.png").unwrap();
+        assert_eq!(image.ihdr_parse(), test_ihdr);
     }
 }
