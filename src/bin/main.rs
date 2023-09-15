@@ -34,6 +34,6 @@ mod tests {
     fn test_ihdr() {
         let test_ihdr = IHDRChunk::new((850, 566), 8, 2, 0, 0, 0);
         let image = Image::new(r"./samples/sample.png").unwrap();
-        assert_eq!(image.ihdr_parse(), test_ihdr);
+        assert_eq!(image.ihdr_parse().unwrap(), test_ihdr);
     }
 }

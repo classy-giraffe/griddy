@@ -27,6 +27,7 @@ pub enum ParsingError {
     InvalidType,
     InvalidCrc,
     CrcMismatch,
+    InvalidData,
 }
 
 impl Display for ParsingError {
@@ -37,6 +38,7 @@ impl Display for ParsingError {
             ParsingError::InvalidType => write!(f, "Invalid chunk type"),
             ParsingError::InvalidCrc => write!(f, "Invalid chunk crc"),
             ParsingError::CrcMismatch => write!(f, "Chunk crc mismatch"),
+            ParsingError::InvalidData => write!(f, "Invalid chunk data"),
         }
     }
 }

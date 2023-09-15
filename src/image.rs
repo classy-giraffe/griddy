@@ -91,20 +91,20 @@ impl Image {
         data.starts_with(&PNG_SIGNATURE)
     }
 
-    pub fn ihdr_parse(&self) -> IHDRChunk {
+    pub fn ihdr_parse(&self) -> Result<IHDRChunk, ParsingError> {
         let ihdr = &self[0];
         let data = ihdr.get_data();
-        IHDRChunk::new(
+        Ok(IHDRChunk::new(
             (
-                u32::from_be_bytes(data[..4].try_into().unwrap()),
-                u32::from_be_bytes(data[4..8].try_into().unwrap()),
+                u32::from_be_bytes(data[..4].try_into().map_err(|_| pe::InvalidData)?),
+                u32::from_be_bytes(data[4..8].try_into().map_err(|_| pe::InvalidData)?),
             ),
             data[8],
             data[9],
             data[10],
             data[11],
             data[12],
-        )
+        ))
     }
 }
 
