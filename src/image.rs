@@ -1,5 +1,4 @@
-use crate::chunk::Chunk;
-use crate::errors::{FileError, ImageError, ParsingError};
+use crate::prelude::*;
 use crc32fast::Hasher;
 use std::fmt::{Debug, Display, Formatter};
 use std::fs::File;
@@ -17,7 +16,6 @@ pub struct Image {
     chunks: Vec<Chunk>,
 }
 
-use crate::parsed_chunks::IHDRChunk;
 use FileError as fe;
 use ParsingError as pe;
 

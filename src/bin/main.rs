@@ -1,14 +1,12 @@
-use griddy::image::Image;
+use griddy::prelude::*;
 
 fn main() {
     let image = Image::new(r"./samples/sample.png").unwrap();
+    println!("{}", image);
 }
 
 #[cfg(test)]
 mod tests {
-    use griddy::errors::FileError;
-    use griddy::parsed_chunks::IHDRChunk;
-
     use super::*;
 
     #[test]
