@@ -4,3 +4,4 @@ pub mod image;
 pub mod parsed_chunks;
 pub mod pixel;
 pub mod prelude;
+pub mod utils;
