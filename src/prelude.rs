@@ -1,7 +1,5 @@
 pub use crate::{
-    chunk::Chunk,
-    image::Image,
-    parsed_chunks::IHDRChunk,
-    pixel::Pixel,
-    utils::errors::{FileError, ImageError, ParsingError},
+    data_structures::{chunk::Chunk, image::Image, parsed_chunks::IHDRChunk, pixel::Pixel},
+    errors::{FileError, ImageError, ParsingError},
+    utils::constants::*,
 };

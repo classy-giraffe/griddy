@@ -5,19 +5,13 @@ use std::fs::File;
 use std::io::Read;
 use std::ops::{Deref, Index};
 use std::path::Path;
-
-const PNG_SIGNATURE: [u8; 8] = [137, 80, 78, 71, 13, 10, 26, 10];
-const LENGTH_SIZE_OFFSET: usize = 4;
-const TYPE_SIZE_OFFSET: usize = 8;
-const CRC_SIZE_OFFSET: usize = 12;
+use FileError as fe;
+use ParsingError as pe;
 
 #[derive(Debug)]
 pub struct Image {
     chunks: Vec<Chunk>,
 }
-
-use FileError as fe;
-use ParsingError as pe;
 
 impl Image {
     pub fn new<P>(path: P) -> Result<Image, ImageError>
