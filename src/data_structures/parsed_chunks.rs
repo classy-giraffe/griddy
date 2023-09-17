@@ -1,6 +1,7 @@
 use std::fmt::Display;
 #[derive(Debug, PartialEq, Eq, Copy, Clone)]
 #[repr(u8)]
+#[allow(clippy::identity_op, clippy::eq_op)]
 pub enum ColorLayout {
     Gray1 = 0 << 4 | 0,
     Gray2 = 0 << 4 | 1,
