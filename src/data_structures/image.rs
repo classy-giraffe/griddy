@@ -11,7 +11,7 @@ use ParsingError as pe;
 
 #[derive(Debug, PartialEq, Eq)]
 pub struct Image {
-    chunks: Vec<Chunk>,
+    chunks: Box<[Chunk]>,
 }
 
 impl Image {
@@ -31,7 +31,7 @@ impl Image {
         }
     }
 
-    fn parse(bytes: &[u8]) -> Result<Vec<Chunk>, ParsingError> {
+    fn parse(bytes: &[u8]) -> Result<Box<[Chunk]>, ParsingError> {
         if bytes.len() < 16 {
             return Err(pe::SizeTooSmall);
         }
@@ -44,7 +44,7 @@ impl Image {
             offset += CRC_SIZE_OFFSET + chunk.get_length();
             chunks.push(chunk);
         }
-        Ok(chunks)
+        Ok(chunks.into_boxed_slice())
     }
 
     fn parse_chunk(bytes: &[u8]) -> Result<Chunk, ParsingError> {
@@ -54,13 +54,9 @@ impl Image {
                 .map_err(|_| pe::InvalidLength)?,
         ) as usize;
 
-        let class = ChunkType::from(u32::from_be_bytes(
-            bytes[LENGTH_SIZE_OFFSET..TYPE_SIZE_OFFSET]
-                .try_into()
-                .map_err(|_| pe::InvalidType)?,
-        ));
+        let class = ChunkType::from(&bytes[LENGTH_SIZE_OFFSET..TYPE_SIZE_OFFSET]);
 
-        let data = bytes[TYPE_SIZE_OFFSET..TYPE_SIZE_OFFSET + length].to_vec();
+        let data = Box::from(&bytes[TYPE_SIZE_OFFSET..TYPE_SIZE_OFFSET + length]);
 
         let crc = u32::from_be_bytes(
             bytes[TYPE_SIZE_OFFSET + length..CRC_SIZE_OFFSET + length]
@@ -126,6 +122,6 @@ impl IntoIterator for Image {
     type IntoIter = std::vec::IntoIter<Self::Item>;
 
     fn into_iter(self) -> Self::IntoIter {
-        self.chunks.into_iter()
+        self.chunks.into_vec().into_iter()
     }
 }
