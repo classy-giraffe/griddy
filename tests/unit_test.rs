@@ -19,11 +19,15 @@ mod tests {
         let image = Image::new(r"./samples/sample.jpg");
         assert_eq!(image.unwrap_err(), FileError::NotAPng.into());
     }
-
     #[test]
     fn test_ihdr() {
         let test_ihdr = IHDRChunk::new((850, 566), ColorLayout::Rgb8, 0, 0, 0);
         let image = Image::new(r"./samples/sample.png").unwrap();
-        assert_eq!(image.ihdr_parse().unwrap(), test_ihdr);
+        assert_eq!(image.get_ihdr().unwrap(), test_ihdr);
+    }
+
+    #[test]
+    fn test_iend() {
+        // todo: test iend
     }
 }

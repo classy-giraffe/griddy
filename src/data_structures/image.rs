@@ -1,14 +1,15 @@
+use crate::data_structures::chunk::ChunkType;
 use crate::prelude::*;
 use crc32fast::Hasher;
 use std::fmt::{Debug, Display, Formatter};
 use std::fs::File;
 use std::io::Read;
-use std::ops::{Deref, Index};
+use std::ops::Index;
 use std::path::Path;
 use FileError as fe;
 use ParsingError as pe;
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq)]
 pub struct Image {
     chunks: Vec<Chunk>,
 }
@@ -53,11 +54,11 @@ impl Image {
                 .map_err(|_| pe::InvalidLength)?,
         ) as usize;
 
-        let class = u32::from_be_bytes(
+        let class = ChunkType::from(u32::from_be_bytes(
             bytes[LENGTH_SIZE_OFFSET..TYPE_SIZE_OFFSET]
                 .try_into()
                 .map_err(|_| pe::InvalidType)?,
-        );
+        ));
 
         let data = bytes[TYPE_SIZE_OFFSET..TYPE_SIZE_OFFSET + length].to_vec();
 
@@ -68,7 +69,7 @@ impl Image {
         );
 
         let mut crc32 = Hasher::new();
-        crc32.update(&class.to_be_bytes());
+        crc32.update(class.as_slice());
         crc32.update(&data);
         let finalized_crc = crc32.finalize();
 
@@ -83,7 +84,7 @@ impl Image {
         data.starts_with(&PNG_SIGNATURE)
     }
 
-    pub fn ihdr_parse(&self) -> Result<IHDRChunk, ParsingError> {
+    pub fn get_ihdr(&self) -> Result<IHDRChunk, ParsingError> {
         let ihdr = &self[0];
         let data = ihdr.get_data();
         Ok(IHDRChunk::new(
@@ -91,11 +92,18 @@ impl Image {
                 u32::from_be_bytes(data[..4].try_into().map_err(|_| pe::InvalidData)?),
                 u32::from_be_bytes(data[4..8].try_into().map_err(|_| pe::InvalidData)?),
             ),
-            ColorLayout::from_color_type_and_bit_depth(data[8], data[9]).ok_or(pe::InvalidData)?,
+            ColorLayout::from_bit_depth_and_color_type(data[8], data[9]),
             data[10],
             data[11],
             data[12],
         ))
+    }
+    pub fn get_iend(&self) -> Result<&Chunk, ParsingError> {
+        let iend = &self[self.chunks.len() - 1];
+        if iend.get_class() != "IEND".chars().map(|c| c as u32).sum() {
+            return Err(pe::InvalidType);
+        }
+        Ok(iend)
     }
 }
 
@@ -113,18 +121,11 @@ impl Display for Image {
     }
 }
 
-impl Deref for Image {
-    type Target = Vec<Chunk>;
-
-    fn deref(&self) -> &Self::Target {
-        &self.chunks
-    }
-}
-
-impl Iterator for Image {
+impl IntoIterator for Image {
     type Item = Chunk;
+    type IntoIter = std::vec::IntoIter<Self::Item>;
 
-    fn next(&mut self) -> Option<Self::Item> {
-        self.chunks.pop()
+    fn into_iter(self) -> Self::IntoIter {
+        self.chunks.into_iter()
     }
 }

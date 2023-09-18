@@ -20,23 +20,23 @@ pub enum ColorLayout {
     RgbAlpha16 = 6 << 4 | 4,
 }
 impl ColorLayout {
-    pub fn from_color_type_and_bit_depth(bit_depth: u8, color_type: u8) -> Option<ColorLayout> {
+    pub fn from_bit_depth_and_color_type(bit_depth: u8, color_type: u8) -> Self {
         match (bit_depth, color_type) {
-            (1, 0) => Some(ColorLayout::Gray1),
-            (2, 0) => Some(ColorLayout::Gray2),
-            (4, 0) => Some(ColorLayout::Gray4),
-            (8, 0) => Some(ColorLayout::Gray8),
-            (16, 0) => Some(ColorLayout::Gray16),
-            (8, 2) => Some(ColorLayout::Rgb8),
-            (16, 2) => Some(ColorLayout::Rgb16),
-            (1, 3) => Some(ColorLayout::Plt1),
-            (2, 3) => Some(ColorLayout::Plt2),
-            (4, 3) => Some(ColorLayout::Plt4),
-            (8, 3) => Some(ColorLayout::Plt8),
-            (8, 4) => Some(ColorLayout::GrayAlpha8),
-            (16, 4) => Some(ColorLayout::GrayAlpha16),
-            (8, 6) => Some(ColorLayout::RgbAlpha8),
-            (16, 6) => Some(ColorLayout::RgbAlpha16),
+            (1, 0) => ColorLayout::Gray1,
+            (2, 0) => ColorLayout::Gray2,
+            (4, 0) => ColorLayout::Gray4,
+            (8, 0) => ColorLayout::Gray8,
+            (16, 0) => ColorLayout::Gray16,
+            (8, 2) => ColorLayout::Rgb8,
+            (16, 2) => ColorLayout::Rgb16,
+            (1, 3) => ColorLayout::Plt1,
+            (2, 3) => ColorLayout::Plt2,
+            (4, 3) => ColorLayout::Plt4,
+            (8, 3) => ColorLayout::Plt8,
+            (8, 4) => ColorLayout::GrayAlpha8,
+            (16, 4) => ColorLayout::GrayAlpha16,
+            (8, 6) => ColorLayout::RgbAlpha8,
+            (16, 6) => ColorLayout::RgbAlpha16,
             _ => panic!("Invalid color type and bit depth combination"),
         }
     }
