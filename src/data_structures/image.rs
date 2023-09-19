@@ -1,4 +1,3 @@
-use crate::data_structures::chunk::ChunkType;
 use crate::prelude::*;
 use crc32fast::Hasher;
 use std::fmt::{Debug, Display, Formatter};
@@ -38,42 +37,14 @@ impl Image {
 
         let mut offset = 0;
         let mut chunks = vec![];
+        let hasher = Hasher::new();
 
         while offset < bytes.len() {
-            let chunk = Image::parse_chunk(&bytes[offset..])?;
+            let chunk = Chunk::parse(&bytes[offset..], hasher.clone())?;
             offset += CRC_SIZE_OFFSET + chunk.get_length();
             chunks.push(chunk);
         }
         Ok(chunks.into_boxed_slice())
-    }
-
-    fn parse_chunk(bytes: &[u8]) -> Result<Chunk, ParsingError> {
-        let length = u32::from_be_bytes(
-            bytes[..LENGTH_SIZE_OFFSET]
-                .try_into()
-                .map_err(|_| pe::InvalidLength)?,
-        ) as usize;
-
-        let class = ChunkType::from(&bytes[LENGTH_SIZE_OFFSET..TYPE_SIZE_OFFSET]);
-
-        let data = Box::from(&bytes[TYPE_SIZE_OFFSET..TYPE_SIZE_OFFSET + length]);
-
-        let crc = u32::from_be_bytes(
-            bytes[TYPE_SIZE_OFFSET + length..CRC_SIZE_OFFSET + length]
-                .try_into()
-                .map_err(|_| pe::InvalidCrc)?,
-        );
-
-        let mut crc32 = Hasher::new();
-        crc32.update(class.as_slice());
-        crc32.update(&data);
-        let finalized_crc = crc32.finalize();
-
-        if crc != finalized_crc {
-            return Err(pe::CrcMismatch);
-        }
-
-        Ok(Chunk::new(length, class, data, crc))
     }
 
     pub fn is_png(data: &[u8]) -> bool {
@@ -93,13 +64,6 @@ impl Image {
             data[11],
             data[12],
         ))
-    }
-    pub fn get_iend(&self) -> Result<&Chunk, ParsingError> {
-        let iend = &self[self.chunks.len() - 1];
-        if iend.get_class() != "IEND".chars().map(|c| c as u32).sum() {
-            return Err(pe::InvalidType);
-        }
-        Ok(iend)
     }
 }
 
