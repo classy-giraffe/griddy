@@ -1,9 +1,9 @@
 pub use crate::{
     data_structures::{
-        chunk::Chunk,
-        image::Image,
+        chunk::{Chunk, ChunkType},
         parsed_chunks::{ColorLayout, IHDRChunk},
         pixel::Pixel,
+        png::Png,
     },
     errors::{FileError, ImageError, ParsingError},
     utils::constants::*,

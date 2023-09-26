@@ -28,6 +28,12 @@ pub enum ParsingError {
     InvalidCrc,
     CrcMismatch,
     InvalidData,
+    MissingIHDR,
+    MissingPLTE,
+    MissingIEND,
+    MultipleIhdr,
+    MultiplePlte,
+    MultipleIend,
 }
 
 impl Display for ParsingError {
@@ -39,6 +45,12 @@ impl Display for ParsingError {
             ParsingError::InvalidCrc => write!(f, "Invalid chunk crc"),
             ParsingError::CrcMismatch => write!(f, "Chunk crc mismatch"),
             ParsingError::InvalidData => write!(f, "Invalid chunk data"),
+            ParsingError::MissingIHDR => write!(f, "Missing IHDR chunk"),
+            ParsingError::MissingPLTE => write!(f, "Missing PLTE chunk"),
+            ParsingError::MissingIEND => write!(f, "Missing IEND chunk"),
+            ParsingError::MultipleIhdr => write!(f, "Multiple IHDR chunks"),
+            ParsingError::MultiplePlte => write!(f, "Multiple PLTE chunks"),
+            ParsingError::MultipleIend => write!(f, "Multiple IEND chunks"),
         }
     }
 }

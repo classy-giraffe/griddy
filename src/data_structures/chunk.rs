@@ -18,6 +18,12 @@ macro_rules! chunk_type_impl {
                     $(ChunkType::$name => stringify!($name).as_bytes(),)*
                 }
             }
+
+            pub fn as_str(&self) -> String {
+                match self {
+                    $(ChunkType::$name => stringify!($name).to_string(),)*
+                }
+            }
         }
 
         impl Display for ChunkType {
@@ -42,11 +48,12 @@ macro_rules! chunk_type_impl {
 }
 
 chunk_type_impl!(
-    IHDR, PLTE, IDAT, IEND, cHRM, gAMA, iCCP, sBIT, sRGB, bKGD, hIST, tRNS, pHYs, tIME, iTXt, tEXt,
-    zTXt
+    IHDR, PLTE, IDAT, IEND, tRNS, cHRM, gAMA, iCCP, sBIT, sRGB, cICP, mDCv, iTXt, tEXt, zTXt, bKGD,
+    hIST, pHYs, sPLT, eXIF, tIME, acTL, fcTL, fdAT
 );
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq, Clone)]
+
 pub struct Chunk {
     length: usize,
     class: ChunkType,
@@ -96,8 +103,8 @@ impl Chunk {
         self.length
     }
 
-    pub fn get_class(&self) -> u32 {
-        self.class as u32
+    pub fn get_class(&self) -> ChunkType {
+        self.class
     }
 
     pub fn get_data(&self) -> &[u8] {
