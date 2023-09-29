@@ -23,7 +23,7 @@ mod tests {
     fn test_ihdr() {
         let test_ihdr = IHDRChunk::new((850, 566), ColorLayout::Rgb8, 0, 0, 0);
         let image = Png::new(r"./samples/sample.png").unwrap();
-        assert_eq!(image.get_ihdr().unwrap(), test_ihdr);
+        assert_eq!(image.get_ihdr(), &test_ihdr);
     }
 
     #[test]

@@ -5,6 +5,6 @@ pub use crate::{
         pixel::Pixel,
         png::Png,
     },
-    errors::{FileError, ImageError, ParsingError},
+    errors::*,
     utils::constants::*,
 };

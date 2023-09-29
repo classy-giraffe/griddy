@@ -1,4 +1,6 @@
+use crate::prelude::*;
 use std::fmt::Display;
+
 #[derive(Debug, PartialEq, Eq, Copy, Clone)]
 #[repr(u8)]
 #[allow(clippy::identity_op, clippy::eq_op)]
@@ -91,14 +93,30 @@ impl IHDRChunk {
     pub fn get_interlace_method(&self) -> u8 {
         self.interlace_method
     }
+
+    pub fn from_chunk(chunk: &Chunk) -> Result<IHDRChunk, ParsingError> {
+        use ParsingError as pe;
+        let data = chunk.get_data();
+        Ok(IHDRChunk {
+            dimensions: (
+                u32::from_be_bytes(data[..4].try_into().map_err(|_| pe::InvalidData)?),
+                u32::from_be_bytes(data[4..8].try_into().map_err(|_| pe::InvalidData)?),
+            ),
+            color_layout: ColorLayout::from_bit_depth_and_color_type(data[8], data[9]),
+            compression_method: data[10],
+            filter_method: data[11],
+            interlace_method: data[12],
+        })
+    }
 }
 
 impl Display for IHDRChunk {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(
-            f,
-            "(dimensions: {:?}, bit_depth: {}, color_type: {}, compression_method: {}, filter_method: {}, interlace_method: {})",
-            self.dimensions, self.get_bit_depth(), self.get_color_type(), self.compression_method, self.filter_method, self.interlace_method
-        )
+        writeln!(f, "Dimensions: {}x{}", self.dimensions.0, self.dimensions.1)?;
+        writeln!(f, "Color layout: {:?}", self.color_layout)?;
+        writeln!(f, "Compression method: {}", self.compression_method)?;
+        writeln!(f, "Filter method: {}", self.filter_method)?;
+        writeln!(f, "Interlace method: {}", self.interlace_method)?;
+        Ok(())
     }
 }
