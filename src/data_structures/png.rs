@@ -93,8 +93,8 @@ impl Png {
 impl Display for Png {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         writeln!(f, "-- PNG information --")?;
-        writeln!(f, "File name: {}", "TODO")?;
-        writeln!(f, "File size: {}", "TODO")?;
+        writeln!(f, "File name: TODO")?;
+        writeln!(f, "File size: TODO")?;
         writeln!(f)?;
 
         writeln!(f, "-- IHDR chunk information--")?;
@@ -106,7 +106,7 @@ impl Display for Png {
 
         writeln!(f, "-- IDAT chunks information --")?;
         writeln!(f, "Number of chunks: {}", self.idat.len())?;
-        writeln!(f, "Average chunk size: {}", "TODO")?;
+        writeln!(f, "Average chunk size: TODO")?;
         writeln!(f)?;
 
         writeln!(f, "-- IEND  --")?;
